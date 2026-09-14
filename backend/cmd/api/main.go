@@ -7,11 +7,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/sebastianpicardo/proyectos/backend/internal/handler"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system env vars")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

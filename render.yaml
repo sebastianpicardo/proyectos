@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: proyectos-backend
+    runtime: go
+    repo: https://github.com/sebastianpicardo/proyectos
+    branch: main
+    rootDir: backend
+    buildCommand: go build -o main ./cmd/api
+    startCommand: ./main
+    envVars:
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://proyectos-eosin.vercel.app
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 8080
+    autoDeploy: true
