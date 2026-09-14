@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/rs/cors"
 	"github.com/sebastianpicardo/proyectos/backend/internal/handler"
@@ -26,8 +27,13 @@ func main() {
 
 	mux.HandleFunc("/api/login", handler.LoginHandler)
 
+	allowedOrigins := []string{"http://localhost:3000", "http://localhost:3001"}
+	if corsOrigins := os.Getenv("CORS_ALLOWED_ORIGINS"); corsOrigins != "" {
+		allowedOrigins = strings.Split(corsOrigins, ",")
+	}
+
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
