@@ -1,30 +1,43 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userLevel, setUserLevel] = useState(1);
+  const [userPoints, setUserPoints] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        setUserName(userData);
-        setIsAuthenticated(true);
-      }
+    const userData = localStorage.getItem("user");
+    if (token && userData) {
+      const parsed = JSON.parse(userData);
+      setIsAuthenticated(true);
+      setUserName(parsed.name || "Usuario");
+      setUserLevel(parsed.level || 1);
+      setUserPoints(parsed.points || 0);
     }
   }, []);
 
   const handleLogin = () => {
-    // Simular login - en producción esto haría fetch al backend
     localStorage.setItem("token", "mock-jwt-token");
-    localStorage.setItem("user", "Administrador");
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        name: "Administrador",
+        email: "admin@test.com",
+        level: 1,
+        points: 0,
+      })
+    );
     setIsAuthenticated(true);
     setUserName("Administrador");
+    setUserLevel(1);
+    setUserPoints(0);
   };
 
   const handleLogout = () => {
@@ -32,109 +45,123 @@ export default function Home() {
     localStorage.removeItem("user");
     setIsAuthenticated(false);
     setUserName("");
+    setUserLevel(1);
+    setUserPoints(0);
+    router.push("/");
   };
 
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center rounded-full bg-indigo-100 p-2.5 mb-4">
-              <svg className="h-6 w-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.99 4.59-3.2 1.58 1.68 4.74L10 11.06l6.15 1.68L18.7 6.91l-4.56-3.09L12 2z"/>
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-indigo-600 mb-2">¡Hola, bienvenido al sistema!</h1>
-            <p className="text-gray-600 text-lg">Has iniciado sesión como <strong className="text-indigo-600">Administrador</strong></p>
-          </div>
+  const menuItems = [
+    { name: "Perfil", href: "/profile" },
+    { name: "Configuración", href: "/settings" },
+    { name: "Progreso y Rangos", href: "/ranking" },
+  ];
 
-          <div className="space-y-4">
-            <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl border border-indigo-200/50">
-              <h3 className="font-semibold text-indigo-600 mb-2">Resumen del MVP</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <svg className="h-4 w-4 rounded-full bg-indigo-100 flex-shrink-0 mt-1.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.99 4.59-3.2 1.58 1.68 4.74L10 11.06l6.15 1.68L18.7 6.91l-4.56-3.09L12 2z"/>
-                  </svg>
-                  <span>Autenticación JWT</span>
-                  <span className="ml-auto text-indigo-500 font-medium">✓</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-4 w-4 rounded-full bg-indigo-100 flex-shrink-0 mt-1.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.99 4.59-3.2 1.58 1.68 4.74L10 11.06l6.15 1.68L18.7 6.91l-4.56-3.09L12 2z"/>
-                  </svg>
-                  <span>Conciliación de Datos</span>
-                  <span className="ml-auto text-indigo-500 font-medium">✓</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-4 w-4 rounded-full bg-indigo-100 flex-shrink-0 mt-1.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.99 4.59-3.2 1.58 1.68 4.74L10 11.06l6.15 1.68L18.7 6.91l-4.56-3.09L12 2z"/>
-                  </svg>
-                  <span>Frontend Next.js</span>
-                  <span className="ml-auto text-indigo-500 font-medium">✓</span>
-                </li>
-              </ul>
+  return (
+    <div style={{ minHeight: "100vh", fontFamily: "sans-serif" }}>
+      <header
+        style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
+          background: isAuthenticated ? "#fff" : "#6366f1",
+          padding: "1rem 2rem", borderBottom: isAuthenticated ? "1px solid #e2e8f0" : "none",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{
+              width: "40px", height: "40px",
+              background: isAuthenticated ? "#1e293b" : "#fff",
+              borderRadius: "6px", color: isAuthenticated ? "#fff" : "#1e293b",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: "bold", fontSize: "1.2rem"
+            }}>
+              {isAuthenticated ? "A" : "S"}
             </div>
-
-            <div className="p-6 bg-gradient-to-r from-purple-50 to-violet-50 rounded-3xl border border-purple-200/50">
-              <h3 className="font-semibold text-purple-600 mb-2">Herramientas Disponibles</h3>
-              <p className="text-gray-600 text-sm">El sistema está listo para procesar:</p>
-              <ul className="list-disc list-inside text-gray-600 text-sm">
-                <li>Cartola bancaria (CSV/Excel)</li>
-                <li>Facturas SII (CSV)</li>
-                <li>Cruce automático por RUT y monto</li>
-                <li>Reporte de pagado/pendiente</li>
-              </ul>
+            <div>
+              {isAuthenticated ? (
+                "Bienvenido"
+              ) : (
+                "Invitado"
+              )}
             </div>
           </div>
-
-          <div className="mt-8 pt-8 border-t border-indigo-200/20">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <button
-              onClick={handleLogout}
-              className="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m7-4l-2 2m2 2l2 2m7-4l-2 2m2 2l2 2"/>
-              </svg>
-              Cerrar sesión
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                padding: 8, cursor: "pointer", color: "#64748b",
+                border: "none", background: "none"
+              }}
+            >
+              {menuOpen ? "▲" : "▼"}
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
+      </header>
 
-  // Pantalla de login
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      <div className="bg-white/95 rounded-3xl p-8 shadow-2xl max-w-md w-full text-center border-indigo-200/50">
-        <Image
-          src="/next.svg"
-          alt="Next.js logo"
-          width={120}
-          className="mx-auto mb-6"
-        />
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Sistema de Conciliación</h1>
-        <p className="text-gray-600 mb-8">Automated bank reconciliation and invoice matching</p>
-        
-        <div className="space-y-4">
-          <Link
-            href="#"
-            onClick={() => {
-              // Simular login automático para demo
-              localStorage.setItem("token", "mock-jwt-token");
-              localStorage.setItem("user", "Administrador");
-              setIsAuthenticated(true);
-            }}
-            className="group bg-indigo-600 text-white rounded-full px-6 py-3 text-lg font-medium transition-all hover:bg-indigo-700 shadow-lg"
-          >
-            Ingresar al Sistema
-          </Link>
-          
-          <div className="flex items-center justify-center pt-4">
-            <span className="text-gray-500 text-sm">Versión 1.0</span>
+      <main
+        style={{
+          marginTop: isAuthenticated ? "80px" : 0,
+          padding: "2rem",
+        }}
+      >
+        {isAuthenticated ? (
+          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <h2 style={{ color: "#1e2341", marginBottom: "1.5rem" }}>
+              ¡Hola, <strong>{userName}</strong>!
+            </h2>
+            <p style={{ color: "#64748b", marginBottom: "1rem" }}>
+              Sube archivos CSV para comenzar la conciliación automática mediante coincidencia de RUT y monto.
+            </p>
+            <div style={{ background: "#fff", padding: "2rem", borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+              <h3 style={{ color: "#1e2341", marginBottom: "1rem", fontSize: "1.25rem" }}>
+                Resumen del MVP
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#3b82f6" }}>125450</div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Total</div>
+                </div>
+                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#10b981" }}>89200</div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Pagado</div>
+                </div>
+                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#f59e0b" }}>36250</div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Pendientes</div>
+                </div>
+              </div>
+              <p style={{ marginTop: "1rem", color: "#64748b", fontSize: "0.875rem" }}>
+                El sistema está listo para procesar cartolas bancarias y facturas SII.
+              </p>
+            </div>
+            <div style={{ marginTop: "1rem", padding: "1rem", background: "#f8f9fa", borderRadius: 6 }}>
+              <h4 style={{ color: "#1e2341", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+                Herramientas Disponibles
+              </h4>
+              <p style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                El sistema está listo para procesar cartolas bancarias y facturas SII.
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+        ) : (
+          <div style={{ textAlign: "center", marginTop: "3rem" }}>
+            <h2 style={{ color: "white", marginBottom: "1rem" }}>Sistema de Conciliación</h2>
+            <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "1.2rem" }}>
+              Inicia sesión para acceder al panel completo
+            </p>
+            <button
+              onClick={() => handleLogin()}
+              style={{
+                background: "white", color: "#1e2341", padding: "1rem 2rem",
+                borderRadius: 6, fontWeight: "600", fontSize: "1rem",
+                transition: "background 0.2s", cursor: "pointer"
+              }}
+            >
+              Ingresar al Sistema
+            </button>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

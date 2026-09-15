@@ -61,7 +61,7 @@ func Load() (*Config, error) {
 		},
 		JWT: JWTConfig{
 			Secret:          getEnv("JWT_SECRET", "dev-secret-change-in-production"),
-			ExpirationHours: getEnvInt("JWT_EXPIRATION_HOURS", 24),
+			ExpirationHours: int(getEnvInt("JWT_EXPIRATION_HOURS", 24)),
 			Issuer:          getEnv("JWT_ISSUER", "mvp-conciliacion"),
 		},
 		CORS: CORSConfig{
