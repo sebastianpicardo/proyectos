@@ -66,7 +66,7 @@ export const Sidebar = () => {
                     aria-label={item.label}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLineCap="round" strokeLineJoin="round" strokeWidth={2} d={item.icon} />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                     </svg>
                     <span>{item.label}</span>
                   </button>

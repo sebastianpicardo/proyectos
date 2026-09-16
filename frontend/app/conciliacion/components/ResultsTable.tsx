@@ -48,10 +48,10 @@ export const ResultsTable = () => {
         <table className="w-full min-w-max">
           <thead>
             <tr class="border-b border-border/50">
-              <th class="text-left text-sm font-medium text-muted/60 px-6 py-3">Concepto</th>
-              <th class="text-left text-sm font-medium text-muted/60 px-6 py-3">Monto CLP</th>
-              <th class="text-left text-sm font-medium text-muted/60 px-6 py-3">Estado</th>
-              <th class="text-left text-sm font-medium text-muted/60 px-6 py-3">Acción</th>
+              <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Concepto</th>
+              <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Monto CLP</th>
+              <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Estado</th>
+              <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Acción</th>
             </tr>
           </thead>
           <tbody>
@@ -71,7 +71,7 @@ export const ResultsTable = () => {
                   <td className="text-left text-sm font-medium px-6 py-3">
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M9 19V6a2 2 0 00-2-2H5a2 2 0 00-2 2v13c0 2 2 2 2 2h14a2 2 0 002-2v-7m-5-3l-3.138 5.326L16.07 21.375c.538.434.21.927-.262 1.073l-4.893-.696L5.37 21.85c-.429.53-.972.225-1.03-.262l-1.158-4.983L.829 9.36l4.465-3.536a1.967 1.967 0 01.03-.651zm0 0l3.138-5.326L8.93 9.375c-.538-.434-.21-.927.262-1.073l4.893.696L18.63 1.65c.429-.53.21-.927-.262-1.073L13.97 2.38l-4.465 3.536a1.967 1.967 0 01-.03.651z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6a2 2 0 00-2-2H5a2 2 0 00-2 2v13c0 2 2 2 2 2h14a2 2 0 002-2v-7m-5-3l-3.138 5.326L16.07 21.375c.538.434.21.927-.262 1.073l-4.893-.696L5.37 21.85c-.429.53-.972.225-1.03-.262l-1.158-4.983L.829 9.36l4.465-3.536a1.967 1.967 0 01.03-.651zm0 0l3.138-5.326L8.93 9.375c-.538-.434-.21-.927.262-1.073l4.893.696L18.63 1.65c.429-.53.21-.927-.262-1.073L13.97 2.38l-4.465 3.536a1.967 1.967 0 01-.03.651z"/>
                       </svg>
                       <span>{item.id}</span>
                     </div>

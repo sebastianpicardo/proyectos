@@ -41,7 +41,7 @@ export const Dropzone = () => {
       zone.classList.add("border-border", "bg-primary/50");
     }
     
-    const files = e.dataTransfer?.files || e.target.files;
+    const files = (e.target as HTMLInputElement).files || (e as React.DragEvent).dataTransfer?.files;
     if (files && files.length > 0) {
       if (type === "cartola") {
         setCartola(files[0]);
