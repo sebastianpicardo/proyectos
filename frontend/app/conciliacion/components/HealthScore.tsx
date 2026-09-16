@@ -37,7 +37,7 @@ export const HealthScore = ({
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <!-- Health Score Card -->
+      {/* Health Score Card */}
       <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
         <div className="flex items-start justify-between">
           <div>
@@ -58,19 +58,19 @@ export const HealthScore = ({
         </div>
       </div>
       
-      <!-- Total Facturado Card -->
+      {/* Total Facturado Card */}
       <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Total Facturado</p>
         <p className="text-2xl font-bold" id="totalFacturado">{formatCLP(totalFacturado)}</p>
       </div>
       
-      <!-- Total Pagado Card -->
+      {/* Total Pagado Card */}
       <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Total Pagado</p>
         <p className="text-2xl font-bold" id="totalPagado">{formatCLP(totalPagado)}</p>
       </div>
       
-      <!-- Efficiency Points Card -->
+      {/* Efficiency Points Card */}
       <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Puntos de Eficiencia</p>
         <p className="text-2xl font-bold" id="efficiencyValue">{efficiencyPoints.toLocaleString()}</p>

@@ -54,28 +54,40 @@ export const ResultsTable = () => {
               <th class="text-left text-sm font-medium text-muted/60 px-6 py-3">Acción</th>
             </tr>
           </thead>
-          <tbody id="resultsTableBody">
-            {filteredData.map((item) => (
-              <tr key={item.id} className="border-b border-border/50 hover:bg-primary/5 transition-colors">
-                <td className="text-left text-sm font-medium px-6 py-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M9 19V6a2 2 0 00-2-2H5a2 2 0 00-2 2v13c0 2 2 2 2 2h14a2 2 0 002-2v-7m-5-3l-3.138 5.326L16.07 21.375c.538.434.21.927-.262 1.073l-4.893-.696L5.37 21.85c-.429.53-.972.225-1.03-.262l-1.158-4.983L.829 9.36l4.465-3.536a1.967 1.967 0 01.03-.651zm0 0l3.138-5.326L8.93 9.375c-.538-.434-.21-.927.262-1.073l4.893.696L18.63 1.65c.429-.53.21-.927-.262-1.073L13.97 2.38l-4.465 3.536a1.967 1.967 0 01-.03.651zm0 0l3.138-5.326L8.93 9.375c-.538-.434-.21-.927.262-1.073l4.893.696L18.63 1.65c.429-.53.21-.927-.262-1.073L13.97 2.38l-4.465 3.536a1.967 1.967 0 01-.03.651z"/>
-                    </svg>
-                    <span>{item.id}</span>
-                  </div>
-                </td>
-                <td className="text-left text-sm font-medium px-6 py-3">{formattedMonto(item.monto)}</td>
-                <td className="text-left text-sm font-medium px-6 py-3">
-                  <span className={item.estado === "conciliada" ? "px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success" : item.estado === "pendiente" ? "px-2 py-0.5 rounded text-xs font-medium bg-warning/10 text-warning" : "px-2 py-0.5 rounded text-xs font-medium bg-error/10 text-error">
-                    {item.estado === "conciliada" ? "Conciliada" : item.estado === "pendiente" ? "Pendiente" : "Sin Factura"}
-                  </span>
-                </td>
-                <td className="text-left text-sm font-medium px-6 py-3">
-                  <button className="px-2 py-0.5 rounded text-xs bg-primary/5 text-primary hover:bg-primary/10 transition-colors">Ver</button>
-                </td>
-              </tr>
-            ))}
+          <tbody>
+            {filteredData.map((item) => {
+              const estadoClass = item.estado === "conciliada"
+                ? "bg-success/10 text-success"
+                : item.estado === "pendiente"
+                ? "bg-warning/10 text-warning"
+                : "bg-error/10 text-error";
+              const estadoText = item.estado === "conciliada"
+                ? "Conciliada"
+                : item.estado === "pendiente"
+                ? "Pendiente"
+                : "Sin Factura";
+              return (
+                <tr key={item.id} className="border-b border-border/50 hover:bg-primary/5 transition-colors">
+                  <td className="text-left text-sm font-medium px-6 py-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M9 19V6a2 2 0 00-2-2H5a2 2 0 00-2 2v13c0 2 2 2 2 2h14a2 2 0 002-2v-7m-5-3l-3.138 5.326L16.07 21.375c.538.434.21.927-.262 1.073l-4.893-.696L5.37 21.85c-.429.53-.972.225-1.03-.262l-1.158-4.983L.829 9.36l4.465-3.536a1.967 1.967 0 01.03-.651zm0 0l3.138-5.326L8.93 9.375c-.538-.434-.21-.927.262-1.073l4.893.696L18.63 1.65c.429-.53.21-.927-.262-1.073L13.97 2.38l-4.465 3.536a1.967 1.967 0 01-.03.651z"/>
+                      </svg>
+                      <span>{item.id}</span>
+                    </div>
+                  </td>
+                  <td className="text-left text-sm font-medium px-6 py-3">{formattedMonto(item.monto)}</td>
+                  <td className="text-left text-sm font-medium px-6 py-3">
+                    <span className={["px-2", "py-0.5", "rounded", "text-xs", "font-medium", estadoClass].join(" ")}>
+                      {estadoText}
+                    </span>
+                  </td>
+                  <td className="text-left text-sm font-medium px-6 py-3">
+                    <button className="px-2 py-0.5 rounded text-xs bg-primary/5 text-primary hover:bg-primary/10 transition-colors">Ver</button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

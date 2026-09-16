@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
-import { Dropzone } from "./Dropzone";
-import { HealthScore } from "./HealthScore";
-import { ResultsTable } from "./ResultsTable";
-import { OverdueInvoices } from "./OverdueInvoices";
+import { Sidebar } from "./components/Sidebar";
+import { Header } from "./components/Header";
+import { Dropzone } from "./components/Dropzone";
+import { HealthScore } from "./components/HealthScore";
+import { ResultsTable } from "./components/ResultsTable";
 
 export const ConciliacionDashboard = () => {
   const [activeSection, setActiveSection] = useState<"dashboard" | "conciliacion">("dashboard");
@@ -23,7 +22,6 @@ export const ConciliacionDashboard = () => {
             <ResultsTable />
           </div>
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <OverdueInvoices />
           </div>
         </main>
       </div>
