@@ -37,8 +37,8 @@ export const Header = () => {
           </svg>
         </div>
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Sistema Conciliación</h1>
-          <p className="text-sm text-muted/80">Versión 2.0</p>
+<h1 className="text-lg font-semibold tracking-tight">Bienvenido seba</h1>
+<p className="text-sm text-muted/80">Sistema de Conciliación</p>
         </div>
       </div>
 
