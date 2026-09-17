@@ -7,7 +7,7 @@ import { Dropzone } from "./components/Dropzone";
 import { HealthScore } from "./components/HealthScore";
 import { ResultsTable } from "./components/ResultsTable";
 
-export const ConciliacionDashboard = () => {
+const ConciliacionDashboard = () => {
   const [activeSection, setActiveSection] = useState<"dashboard" | "conciliacion">("dashboard");
 
   return (
@@ -28,3 +28,5 @@ export const ConciliacionDashboard = () => {
     </div>
   );
 };
+
+export default ConciliacionDashboard;

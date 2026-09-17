@@ -116,7 +116,7 @@ export const Dropzone = () => {
           }}
         >
           <svg className="w-8 h-8 mb-3 text-primary/50 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Cartola Bancaria</h3>
           <p className="text-sm text-muted/60">CSV/Excel Banco de Chile, Santander, BCI, Estado, Scotiabank, Itaú</p>
@@ -125,7 +125,7 @@ export const Dropzone = () => {
         {cartola && (
           <div className="mt-3 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-sm">
             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
             </svg>
             <span>Archivo seleccionado: {cartola.name}</span>
           </div>
@@ -201,7 +201,7 @@ export const Dropzone = () => {
           }}
         >
           <svg className="w-8 h-8 mb-3 text-primary/50 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Facturas / Ventas SII</h3>
           <p className="text-sm text-muted/60">CSV/Excel Registro de Ventas SII</p>
@@ -210,7 +210,7 @@ export const Dropzone = () => {
         {facturas && (
           <div className="mt-3 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-sm">
             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLineCap="round" strokeLineJoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
             </svg>
             <span>Archivo seleccionado: {facturas.name}</span>
           </div>

@@ -44,10 +44,10 @@ export const ResultsTable = () => {
         </div>
       </div>
       
-      <div class="overflow-x-auto">
+      <div className="overflow-x-auto">
         <table className="w-full min-w-max">
           <thead>
-            <tr class="border-b border-border/50">
+            <tr className="border-b border-border/50">
               <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Concepto</th>
               <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Monto CLP</th>
               <th className="text-left text-sm font-medium text-muted/60 px-6 py-3">Estado</th>
