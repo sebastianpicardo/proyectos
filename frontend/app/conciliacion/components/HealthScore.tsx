@@ -3,42 +3,52 @@
 import { useState, useEffect } from "react";
 
 type HealthScoreProps = {
-  healthScore?: number;
-  efficiencyPoints?: number;
   totalFacturado?: number;
   totalPagado?: number;
+  totalPendiente?: number;
 };
 
 export const HealthScore = ({ 
-  healthScore = 85, 
-  efficiencyPoints = 1240, 
-  totalFacturado = 125450, 
-  totalPagado = 89200 
-}: HealthScoreProps) => {
+  totalFacturado, 
+  totalPagado, 
+  totalPendiente 
+}: HealthScoreProps = {}) => {
   const [isDark, setIsDark] = useState<boolean>(false);
 
   useEffect(() => {
     const html = document.documentElement;
-    const updateTheme = () => {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (isDark === false) {
-        html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-      }
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const applyTheme = (theme: 'light' | 'dark') => {
+      html.setAttribute('data-theme', theme);
     };
-    updateTheme();
-    const listener = () => updateTheme();
+
+    applyTheme(theme);
+
+    const listener = () => {
+      applyTheme(theme);
+    };
+
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener);
-    return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
-  }, [isDark]);
+
+    return () => {
+      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
+    };
+  }, [theme]);
 
   const formatCLP = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
   };
 
+  const tfTotalFacturado = totalFacturado || 125450;
+  const tfTotalPagado = totalPagado || 89200;
+  const tfTotalPendiente = totalPendiente || (tfTotalFacturado - tfTotalPagado);
+  const healthScore = Math.round((tfTotalPagado / tfTotalFacturado) * 100);
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* Health Score Card */}
-      <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
+      <div className="rounded-2xl border p-6 bg-card backdrop-blur-sm">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-muted/60 mb-1">Salud Financiera de Cobranza</p>
@@ -54,27 +64,34 @@ export const HealthScore = ({
           <div className="h-2 rounded-full bg-border/30 overflow-hidden">
             <div className="h-full rounded-full bg-gradient-to-r from-success to-primary transition-width" style={{ width: `${healthScore}%` }}></div>
           </div>
-          <p className="text-sm text-muted/60 mt-1">Puntos de Eficiencia: <span id="efficiencyPoints">{efficiencyPoints.toLocaleString()}</span></p>
+          <p className="text-sm text-muted/60 mt-1">Puntos de Eficiencia: <span id="efficiencyPoints">{tfTotalPagado.toLocaleString("es-CL")}</span></p>
         </div>
       </div>
       
       {/* Total Facturado Card */}
-      <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
+      <div className="rounded-2xl border p-6 bg-card backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Total Facturado</p>
-        <p className="text-2xl font-bold" id="totalFacturado">{formatCLP(totalFacturado)}</p>
+        <p className="text-2xl font-bold" id="totalFacturado">{formatCLP(tfTotalFacturado)}</p>
       </div>
       
       {/* Total Pagado Card */}
-      <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
+      <div className="rounded-2xl border p-6 bg-card backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Total Pagado</p>
-        <p className="text-2xl font-bold" id="totalPagado">{formatCLP(totalPagado)}</p>
+        <p className="text-2xl font-bold" id="totalPagado">{formatCLP(tfTotalPagado)}</p>
       </div>
       
       {/* Efficiency Points Card */}
-      <div className="rounded-2xl border p-6 bg-card/50 backdrop-blur-sm">
+      <div className="rounded-2xl border p-6 bg-card backdrop-blur-sm">
         <p className="text-sm text-muted/60 mb-1">Puntos de Eficiencia</p>
-        <p className="text-2xl font-bold" id="efficiencyValue">{efficiencyPoints.toLocaleString()}</p>
+        <p className="text-2xl font-bold" id="efficiencyValue">{tfTotalPagado.toLocaleString("es-CL")}</p>
         <p className="text-sm text-muted/60">vs mes anterior</p>
+      </div>
+      
+      {/* Pendiente Card */}
+      <div className="rounded-2xl border p-6 bg-card backdrop-blur-sm">
+        <p className="text-sm text-muted/60 mb-1">Pendiente por Conciliar</p>
+        <p className="text-2xl font-bold" id="totalPendiente">{formatCLP(tfTotalPendiente)}</p>
+        <p className="text-sm text-muted/60">% de cobertura: {(100 - healthScore)}%</p>
       </div>
     </div>
   );

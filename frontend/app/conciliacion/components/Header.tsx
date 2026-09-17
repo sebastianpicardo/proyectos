@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export const Header = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -28,7 +29,7 @@ export const Header = () => {
 
   return (
     <header
-      className="flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-gray-900 data-[data-theme=dark]:bg-gray-900 data-[data-theme=light]:bg-white shadow-sm"
+      className="flex items-center justify-between px-6 py-4 border-b bg-card text-border/60 shadow-sm [&_svg]:stroke-current [&_path]:stroke-current"
     >
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center">
@@ -37,8 +38,8 @@ export const Header = () => {
           </svg>
         </div>
         <div>
-<h1 className="text-lg font-semibold tracking-tight">¡Hola, Seba!</h1>
-<p className="text-sm text-muted/80">Sistema de Conciliación</p>
+          <h1 className="text-lg font-semibold tracking-tight">Sistema de Conciliación</h1>
+          <p className="text-sm text-muted/80">Gestión financiera y conciliación bancaria</p>
         </div>
       </div>
 

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-type DashboardNav = 
+type DashboardNav =
   | "dashboard"
-  | "conciliacion" 
+  | "conciliacion"
   | "historial"
   | "facturas-sii"
   | "clientes-morosos"
@@ -44,9 +44,9 @@ export const Sidebar = () => {
 
   return (
     <aside
-      className="fixed left-0 top-16 bottom-0 w-64 bg-primary/50 border-r border-border/50 data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+      className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border p-4 space-y-2 overflow-y-auto"
     >
-      <div className="h-full p-4 space-y-2">
+      <div className="h-full">
         <nav>
           <ul className="space-y-1 px-2">
             {navItems.map((item) => {

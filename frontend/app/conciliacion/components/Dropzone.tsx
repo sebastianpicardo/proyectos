@@ -1,14 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
-type FileInput = {
-  name: string;
-  type: string;
-  size: number;
+type CartolaRow = {
+  fecha: string;
+  descripcion: string;
+  rut: string;
+  monto: number;
+  tipo: "abono" | "cargo";
 };
 
-export const Dropzone = () => {
+type FacturaSIIRow = {
+  folio: string;
+  rutEmisor: string;
+  rutReceptor: string;
+  razonSocial: string;
+  montoTotal: number;
+  estado: "emitida" | "pendiente" | "conciliada";
+};
+
+type UploadState = {
+  cartola: File | null;
+  facturas: File | null;
+  loading: boolean;
+  bankFormat: string;
+};
+
+const extractRUT = (rutString: string): string => {
+  const cleaned = rutString.replace(/[^0-9kK]/g, "").toUpperCase();
+  return cleaned;
+};
+
+const parseChileanAmount = (value: string): number => {
+  const cleaned = value
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .replace(/^$/, "0");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+};
+
+const parseCSV = (file: File): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split("\n");
+      if (lines.length < 2) {
+        reject(new Error("El archivo CSV está vacío o tiene solo una fila (cabecera)."));
+        return;
+      }
+
+      const headerLine = lines[0].toLowerCase();
+      const separator = headerLine.includes(";") ? ";" : ",";
+      const headers = headerLine.split(separator);
+
+      const rows: any = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(separator);
+        const row: any = {};
+        for (let j = 0; j < headers.length; j++) {
+          row[headers[j].trim()] = cells[j]?.trim ?? "";
+        }
+        rows.push(row);
+      }
+
+      resolve({ headers, rows, separator });
+    };
+
+    reader.onerror = (e) => {
+      reject(new Error("Error al leer el archivo."));
+    };
+
+    reader.readAsText(file, "UTF-8");
+  });
+};
+
+export const Dropzone = ({
+  onUploadSuccess,
+  onError,
+}: {
+  onUploadSuccess?: (data: {
+    totalFacturado: number;
+    totalPagado: number;
+    totalPendiente: number;
+    conciliados: any[];
+    pendientes: any[];
+  }) => void;
+  onError?: (error: Error) => void;
+}) => {
   const [cartola, setCartola] = useState<File | null>(null);
   const [facturas, setFacturas] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,23 +106,41 @@ export const Dropzone = () => {
   ];
 
   const handleCartolaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCartola(e.target.files?.[0] ?? null);
+    const file = e.target.files?.[0] ?? null;
+    setCartola(file);
+    if (file) {
+      parseCSV(file).then(({ headers, rows }) => {
+        console.log("Cartola CSV headers:", headers);
+        console.log("Cartola CSV rows:", rows.length, "filas");
+      }).catch((err) => {
+        toast.error("Error al parsear cartola", { description: err.message });
+      });
+    }
   };
 
   const handleFacturasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFacturas(e.target.files?.[0] ?? null);
+    const file = e.target.files?.[0] ?? null;
+    setFacturas(file);
+    if (file) {
+      parseCSV(file).then(({ headers, rows }) => {
+        console.log("Facturas SII CSV headers:", headers);
+        console.log("Facturas SII CSV rows:", rows.length, "filas");
+      }).catch((err) => {
+        toast.error("Error al parsear facturas SII", { description: err.message });
+      });
+    }
   };
 
   const handleFileDrop = (e: React.DragEvent, type: "cartola" | "facturas") => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const zone = e.currentTarget?.closest?.("[data-zone]") || e.currentTarget?.parentElement;
     if (zone) {
       zone.classList.remove("bg-primary/10", "border-primary/40");
       zone.classList.add("border-border", "bg-primary/50");
     }
-    
+
     const files = (e.target as HTMLInputElement).files || (e as React.DragEvent).dataTransfer?.files;
     if (files && files.length > 0) {
       if (type === "cartola") {
@@ -48,50 +148,120 @@ export const Dropzone = () => {
       } else {
         setFacturas(files[0]);
       }
-      processFiles(files[0], type);
+
+      const file = files[0];
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        toast.info("Archivo cargado", { description: `${file.name} - ${file.size} bytes` });
+      };
+
+      reader.onerror = (err) => {
+        toast.error("Error al leer archivo", { description: (err as Error).message });
+      };
+
+      reader.readAsText(file, "UTF-8");
     }
   };
 
-  const processFiles = (file: File, type: "cartola" | "facturas") => {
-    setLoading(true);
-    
-    const formData = new FormData();
-    formData.append(type, file);
+  const processInMemory = async () => {
+    if (!cartola && !facturas) return;
 
-    // Simulate API call to Go backend
-    setTimeout(() => {
-      // Mock response - in production, this would be the actual API response
-      const mockData = {
-        total_facturado: 125450,
-        total_pagado: 89200,
-        total_pendiente: 36250,
-        conciliados: [
-          { id: "FAC-001", rut: "76.123.456-7", monto: 50000, estado: "conciliado" }
-        ],
-        pendientes: [
-          { id: "FAC-002", rut: "76.987.654-3", monto: 32000, estado: "pendiente" }
-        ]
-      };
-      
+    setLoading(true);
+
+    try {
+      const cartolaData: CartolaRow[] = [];
+      const facturasData: FacturaSIIRow[] = [];
+
+      if (cartola) {
+        await parseCSV(cartola).then(({ rows }) => {
+          rows.forEach((row: any) => {
+            const monto = parseChileanAmount(row.Monto || row.monto || row.montos || "0");
+            cartolaData.push({
+              fecha: row.Fecha || row.fecha || "",
+              descripcion: row.Descripcion || row.descripcion || "Sin descripción",
+              rut: extractRUT(row.RUT || row.rut || ""),
+              monto,
+              tipo: (row.Tipo || row.tipo || "abono").toLowerCase() === "cargo" ? "cargo" : "abono",
+            });
+          });
+        });
+      }
+
+      if (facturas) {
+        await parseCSV(facturas).then(({ rows }) => {
+          rows.forEach((row: any) => {
+            const monto = parseChileanAmount(row.MontoTotal || row.monto_total || row.monto || "0");
+            facturasData.push({
+              folio: row.Folio || row.folio || "",
+              rutEmisor: extractRUT(row["RUT Emisor"] || row.rut_emisor || ""),
+              rutReceptor: extractRUT(row["RUT Receptor"] || row.rut_receptor || ""),
+              razonSocial: row.RazonSocial || row.razon_social || row.razonSocial || "Sin razón social",
+              montoTotal: monto,
+              estado: (row.Estado || row.estado || "pendiente").toLowerCase() as any,
+            });
+          });
+        });
+      }
+
+      // Calculate metrics
+      const totalFacturado = facturasData.reduce((sum, f) => sum + f.montoTotal, 0);
+      const totalPagado = cartolaData.reduce((sum, c) => sum + Math.abs(c.monto), 0);
+      const totalPendiente = totalFacturado - totalPagado;
+
+      // Simple matching: RUT + Monto exacto
+      const conciliados = cartolaData.filter((c) =>
+        facturasData.some(
+          (f) => f.rutEmisor === c.rut || f.rutReceptor === c.rut && Math.abs(f.montoTotal - c.monto) < 1
+        )
+      );
+
+      const pendientes = facturasData.filter(
+        (f) => !conciliados.some((c) => c.rut === (f.rutEmisor || f.rutReceptor))
+      );
+
+      onUploadSuccess?.({
+        totalFacturado,
+        totalPagado,
+        totalPendiente,
+        conciliados,
+        pendientes,
+      });
+
+      toast.success("Conciliación completada", {
+        description: `Total Facturado: $${totalFacturado.toLocaleString("es-CL")} | Pagado: $${totalPagado.toLocaleString("es-CL")} | Pendiente: $${totalPendiente.toLocaleString("es-CL")}`,
+      });
+    } catch (err) {
+      onError?.(err as Error);
+      toast.error("Error en la conciliación", {
+        description: (err as Error).message,
+      });
+    } finally {
       setLoading(false);
-      // Here you would dispatch an action or call a callback with the data
-      console.log("Conciliación completada", mockData);
-    }, 1500);
+    }
+  };
+
+  const handleSubmit = () => {
+    processInMemory();
   };
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* Cartola Bancaria */}
-      <div className="group relative rounded-2xl border-2 border-border/50 hover:border-primary/40 bg-primary/50 transition-all duration-300 cursor-pointer select-none">
+      <div
+        className="group relative rounded-2xl border-2 border-border/50 hover:border-primary/40 bg-card/50 transition-all duration-300 cursor-pointer select-none [&_input]:hidden"
+        data-zone
+      >
         <input
           type="file"
           id="cartolaInput"
           accept=".csv,.xlsx,.xls"
-          className="hidden"
+          className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
           onChange={(e) => handleCartolaChange(e)}
         />
         <div
-          className="min-h-[200px] flex flex-col items-center justify-center py-6"
+          className="min-h-[220px] flex flex-col items-center justify-center py-8 border-2 border-border/50 rounded-2xl flex-shrink-0 transition-all duration-300 group-border-border/50 group-hover:border-primary/40 group-bg-primary/50 cursor-pointer select-none"
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -115,7 +285,7 @@ export const Dropzone = () => {
             handleFileDrop(e, "cartola");
           }}
         >
-          <svg className="w-8 h-8 mb-3 text-primary/50 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Cartola Bancaria</h3>
@@ -167,16 +337,19 @@ export const Dropzone = () => {
       </div>
 
       {/* Registro de Ventas / Facturas SII */}
-      <div className="group relative rounded-2xl border-2 border-border/50 hover:border-primary/40 bg-primary/50 transition-all duration-300 cursor-pointer select-none">
+      <div
+        className="group relative rounded-2xl border-2 border-border/50 hover:border-primary/40 bg-card/50 transition-all duration-300 cursor-pointer select-none [&_input]:hidden"
+        data-zone
+      >
         <input
           type="file"
           id="facturasInput"
           accept=".csv,.xlsx,.xls"
-          className="hidden"
+          className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
           onChange={(e) => handleFacturasChange(e)}
         />
         <div
-          className="min-h-[200px] flex flex-col items-center justify-center py-6"
+          className="min-h-[220px] flex flex-col items-center justify-center py-8 border-2 border-border/50 rounded-2xl flex-shrink-0 transition-all duration-300 group-border-border/50 group-hover:border-primary/40 group-bg-primary/50 cursor-pointer select-none"
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -200,7 +373,7 @@ export const Dropzone = () => {
             handleFileDrop(e, "facturas");
           }}
         >
-          <svg className="w-8 h-8 mb-3 text-primary/50 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Facturas / Ventas SII</h3>
