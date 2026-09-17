@@ -70,9 +70,9 @@ const parseCSV = (file: File): Promise<any> => {
       resolve({ headers, rows, separator });
     };
 
-    reader.onerror = (e) => {
-      reject(new Error("Error al leer el archivo."));
-    };
+reader.onerror = (event: ProgressEvent<FileReader>) => {
+        reject(new Error("Error al leer el archivo."));
+      };
 
     reader.readAsText(file, "UTF-8");
   });
@@ -157,8 +157,8 @@ export const Dropzone = ({
         toast.info("Archivo cargado", { description: `${file.name} - ${file.size} bytes` });
       };
 
-      reader.onerror = (err) => {
-        toast.error("Error al leer archivo", { description: (err as Error).message });
+      reader.onerror = (event: ProgressEvent<FileReader>) => {
+        toast.error("Error al leer archivo", { description: event.target?.error?.message || "Error desconocido" });
       };
 
       reader.readAsText(file, "UTF-8");

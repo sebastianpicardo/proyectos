@@ -19,14 +19,14 @@ export const HealthScore = ({
     const html = document.documentElement;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    const applyTheme = (theme: 'light' | 'dark') => {
-      html.setAttribute('data-theme', theme);
+    const applyTheme = (isDark: 'light' | 'dark') => {
+      html.setAttribute('data-theme', isDark);
     };
 
-    applyTheme(theme);
+    applyTheme(isDark ? 'dark' : 'light');
 
     const listener = () => {
-      applyTheme(theme);
+      applyTheme(isDark ? 'dark' : 'light');
     };
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener);
@@ -34,7 +34,7 @@ export const HealthScore = ({
     return () => {
       window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
     };
-  }, [theme]);
+  }, [isDark]);
 
   const formatCLP = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
