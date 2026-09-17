@@ -11,7 +11,9 @@ export default function Home() {
   const [userPoints, setUserPoints] = useState(0);
   const [consecutiveDays, setConsecutiveDays] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [view, setView] = useState<"dashboard" | "conciliacion" | "profile" | "ranking" | "settings">("dashboard");
+  const [view, setView] = useState<
+    "dashboard" | "conciliacion" | "profile" | "ranking" | "settings"
+  >("dashboard");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,10 +35,10 @@ export default function Home() {
     userLevel >= 5
       ? "Maestro"
       : userLevel >= 3
-      ? "Avanzado"
-      : userLevel >= 2
-      ? "Intermedio"
-      : "Principiante";
+        ? "Avanzado"
+        : userLevel >= 2
+          ? "Intermedio"
+          : "Principiante";
 
   const menuItems = [
     { name: "Perfil", href: "/profile" },
@@ -54,7 +56,7 @@ export default function Home() {
         level: 1,
         points: 0,
         consecutiveDays: 0,
-      })
+      }),
     );
     setIsAuthenticated(true);
     setUserName("Administrador");
@@ -105,7 +107,11 @@ export default function Home() {
       setMenuOpen(false);
       if (item.href) router.push(item.href);
     };
-    return <div key={index} style={itemStyle} onClick={handleClick}>{item.name}</div>;
+    return (
+      <div key={index} style={itemStyle} onClick={handleClick}>
+        {item.name}
+      </div>
+    );
   });
 
   return (
@@ -122,31 +128,41 @@ export default function Home() {
           borderBottom: isAuthenticated ? "1px solid #e2e8f0" : "none",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{
-              width: "40px", height: "40px",
-              background: isAuthenticated ? "#1e293b" : "#fff",
-              borderRadius: "6px", color: isAuthenticated ? "#fff" : "#1e293b",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: "bold", fontSize: "1.2rem"
-            }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                background: isAuthenticated ? "#1e293b" : "#fff",
+                borderRadius: "6px",
+                color: isAuthenticated ? "#fff" : "#1e293b",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+              }}
+            >
               {isAuthenticated ? "A" : "S"}
             </div>
-            <div>
-              {isAuthenticated ? (
-                "Bienvenido"
-              ) : (
-                "Invitado"
-              )}
-            </div>
+            <div>{isAuthenticated ? "Bienvenido Seba" : "Invitado"}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               style={{
-                padding: 8, cursor: "pointer", color: "#64748b",
-                border: "none", background: "none"
+                padding: 8,
+                cursor: "pointer",
+                color: "#64748b",
+                border: "none",
+                background: "none",
               }}
             >
               {menuOpen ? "▲" : "▼"}
@@ -155,12 +171,20 @@ export default function Home() {
         </div>
 
         {menuOpen && (
-          <div style={{
-            position: "absolute", top: "100%", right: 0,
-            background: "white", padding: "1rem", borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)", minWidth: "140px",
-            marginTop: "4px", marginBottom: "1rem"
-          }}>
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              right: 0,
+              background: "white",
+              padding: "1rem",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              minWidth: "140px",
+              marginTop: "4px",
+              marginBottom: "1rem",
+            }}
+          >
             {menuElements}
           </div>
         )}
@@ -179,11 +203,20 @@ export default function Home() {
               ¡Hola, <strong>{userName}</strong>!
             </h2>
             <p style={{ color: "#64748b", marginBottom: "1rem" }}>
-              Sube archivos CSV para comenzar la conciliación automática mediante coincidencia de RUT y monto.
+              Sube archivos CSV para comenzar la conciliación automática
+              mediante coincidencia de RUT y monto.
             </p>
 
             {/* Progress Bar */}
-            <div style={{ background: "#f1f5f9", borderRadius: "999px", height: "8px", overflow: "hidden", marginBottom: "1.5rem" }}>
+            <div
+              style={{
+                background: "#f1f5f9",
+                borderRadius: "999px",
+                height: "8px",
+                overflow: "hidden",
+                marginBottom: "1.5rem",
+              }}
+            >
               <div
                 style={{
                   height: "100%",
@@ -195,61 +228,176 @@ export default function Home() {
             </div>
 
             {/* Level Info */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <span style={{ color: "#64748b", fontSize: "0.875rem" }}>Nivel {userLevel}</span>
-              <span style={{ color: "#1e2341", fontWeight: "600", fontSize: "0.875rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <span style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                Nivel {userLevel}
+              </span>
+              <span
+                style={{
+                  color: "#1e2341",
+                  fontWeight: "600",
+                  fontSize: "0.875rem",
+                }}
+              >
                 {getLevelLabel(userLevel)} ({progress} / 100 pts)
               </span>
             </div>
 
             {/* Conciliation Form */}
-            <div style={{ background: "#fff", padding: "2rem", borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)", marginBottom: "2rem" }}>
-              <h3 style={{ color: "#1e2341", marginBottom: "1rem", fontSize: "1.25rem" }}>
+            <div
+              style={{
+                background: "#fff",
+                padding: "2rem",
+                borderRadius: 8,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                marginBottom: "2rem",
+              }}
+            >
+              <h3
+                style={{
+                  color: "#1e2341",
+                  marginBottom: "1rem",
+                  fontSize: "1.25rem",
+                }}
+              >
                 Conciliación de Datos
               </h3>
-              
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#3b82f6" }}>125450</div>
-                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Total Facturado</div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    background: "#f8f9fa",
+                    borderRadius: 6,
+                    padding: 1,
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#3b82f6",
+                    }}
+                  >
+                    125450
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                    Total Facturado
+                  </div>
                 </div>
-                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#10b981" }}>89200</div>
-                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Pagado</div>
+                <div
+                  style={{
+                    background: "#f8f9fa",
+                    borderRadius: 6,
+                    padding: 1,
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#10b981",
+                    }}
+                  >
+                    89200
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                    Pagado
+                  </div>
                 </div>
-                <div style={{ background: "#f8f9fa", borderRadius: 6, padding: 1, textAlign: "center" }}>
-                  <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#f59e0b" }}>36250</div>
-                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>Pendientes</div>
+                <div
+                  style={{
+                    background: "#f8f9fa",
+                    borderRadius: 6,
+                    padding: 1,
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#f59e0b",
+                    }}
+                  >
+                    36250
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                    Pendientes
+                  </div>
                 </div>
               </div>
 
-              <p style={{ color: "#64748b", fontSize: "0.875rem", marginBottom: "1rem" }}>
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "0.875rem",
+                  marginBottom: "1rem",
+                }}
+              >
                 Arrastra y suelta tus archivos CSV o haz clic para upload.
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                }}
+              >
                 <button
                   style={{
-                    background: "#3b82f6", color: "white", padding: "0.75rem",
-                    borderRadius: 6, fontSize: "0.875rem", fontWeight: "500", border: "none",
-                    cursor: "pointer", transition: "background 0.2s"
+                    background: "#3b82f6",
+                    color: "white",
+                    padding: "0.75rem",
+                    borderRadius: 6,
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "background 0.2s",
                   }}
                   onClick={() => {
                     incrementPoints(5);
-                    alert("Función: Subir Cartola Bancaria CSV - Próximamente con integración real")
+                    alert(
+                      "Función: Subir Cartola Bancaria CSV - Próximamente con integración real",
+                    );
                   }}
                 >
                   Subir Cartola Bancaria
                 </button>
                 <button
                   style={{
-                    background: "#10b981", color: "white", padding: "0.75rem",
-                    borderRadius: 6, fontSize: "0.875rem", fontWeight: "500", border: "none",
-                    cursor: "pointer", transition: "background 0.2s"
+                    background: "#10b981",
+                    color: "white",
+                    padding: "0.75rem",
+                    borderRadius: 6,
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "background 0.2s",
                   }}
                   onClick={() => {
                     incrementPoints(5);
-                    alert("Función: Subir Facturas SII CSV - Próximamente con integración real")
+                    alert(
+                      "Función: Subir Facturas SII CSV - Próximamente con integración real",
+                    );
                   }}
                 >
                   Subir Facturas SII
@@ -258,12 +406,24 @@ export default function Home() {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: "1rem",
+              }}
+            >
               <button
                 style={{
-                  background: "#f3f4f6", color: "#1e2341", padding: "0.75rem",
-                  borderRadius: 6, fontSize: "0.875rem", fontWeight: "500", border: "none",
-                  cursor: "pointer", width: "100%"
+                  background: "#f3f4f6",
+                  color: "#1e2341",
+                  padding: "0.75rem",
+                  borderRadius: 6,
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  border: "none",
+                  cursor: "pointer",
+                  width: "100%",
                 }}
                 onClick={() => setView("profile")}
               >
@@ -271,9 +431,15 @@ export default function Home() {
               </button>
               <button
                 style={{
-                  background: "#f3f4f6", color: "#1e2341", padding: "0.75rem",
-                  borderRadius: 6, fontSize: "0.875rem", fontWeight: "500", border: "none",
-                  cursor: "pointer", width: "100%"
+                  background: "#f3f4f6",
+                  color: "#1e2341",
+                  padding: "0.75rem",
+                  borderRadius: 6,
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  border: "none",
+                  cursor: "pointer",
+                  width: "100%",
                 }}
                 onClick={() => setView("ranking")}
               >
@@ -282,14 +448,44 @@ export default function Home() {
             </div>
 
             {/* Sistema de Rangos Visual */}
-            <div style={{ background: "#fff", padding: "2rem", borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)", marginTop: "2rem" }}>
-              <h4 style={{ color: "#1e2341", marginBottom: "1rem", fontSize: "1rem" }}>
+            <div
+              style={{
+                background: "#fff",
+                padding: "2rem",
+                borderRadius: 8,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                marginTop: "2rem",
+              }}
+            >
+              <h4
+                style={{
+                  color: "#1e2341",
+                  marginBottom: "1rem",
+                  fontSize: "1rem",
+                }}
+              >
                 Sistema de Rangos tipo Duolingo
               </h4>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.5rem", marginBottom: "1rem" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5, 1fr)",
+                  gap: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
                 {[1, 2, 3, 4, 5].map((level) => {
                   const isCurrent = level === userLevel;
-                  const label = level === 1 ? "Principiante" : level === 2 ? "Intermedio" : level === 3 ? "Avanzado" : level === 4 ? "Experto" : "Maestro";
+                  const label =
+                    level === 1
+                      ? "Principiante"
+                      : level === 2
+                        ? "Intermedio"
+                        : level === 3
+                          ? "Avanzado"
+                          : level === 4
+                            ? "Experto"
+                            : "Maestro";
                   const minPts = (level - 1) * 100;
                   const maxPts = level * 100 - 1;
                   return (
@@ -298,8 +494,11 @@ export default function Home() {
                         height: "30px",
                         borderRadius: "4px",
                         background: isCurrent ? "#3b82f6" : "#e2e8f0",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: isCurrent ? "white" : "#64748b", fontSize: "0.65rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: isCurrent ? "white" : "#64748b",
+                        fontSize: "0.65rem",
                       }}
                     >
                       {isCurrent ? label : `${minPts}-${maxPts} pts`}
@@ -309,12 +508,25 @@ export default function Home() {
               </div>
 
               <div>
-                <div style={{ color: "#64748b", fontSize: "0.875rem", marginBottom: "0.5rem" }}>
-                  Puntos actuales: <strong style={{ color: "#1e2341" }}>{userPoints}</strong>
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "0.875rem",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Puntos actuales:{" "}
+                  <strong style={{ color: "#1e2341" }}>{userPoints}</strong>
                 </div>
                 <div>
                   {userPoints >= 1000 && (
-                    <span style={{ color: "#f59e0b", fontWeight: "bold", fontSize: "0.875rem" }}>
+                    <span
+                      style={{
+                        color: "#f59e0b",
+                        fontWeight: "bold",
+                        fontSize: "0.875rem",
+                      }}
+                    >
                       ¡Felicidades! Has alcanzado el Nivel Máximo ⭐
                     </span>
                   )}
@@ -329,16 +541,23 @@ export default function Home() {
           </div>
         ) : (
           <div style={{ textAlign: "center", marginTop: "3rem" }}>
-            <h2 style={{ color: "white", marginBottom: "1rem" }}>Sistema de Conciliación</h2>
+            <h2 style={{ color: "white", marginBottom: "1rem" }}>
+              Sistema de Conciliación
+            </h2>
             <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "1.2rem" }}>
               Inicia sesión para acceder al panel completo
             </p>
             <button
               onClick={() => handleLogin()}
               style={{
-                background: "white", color: "#1e2341", padding: "1rem 2rem",
-                borderRadius: 6, fontWeight: "600", fontSize: "1rem",
-                transition: "background 0.2s", cursor: "pointer"
+                background: "white",
+                color: "#1e2341",
+                padding: "1rem 2rem",
+                borderRadius: 6,
+                fontWeight: "600",
+                fontSize: "1rem",
+                transition: "background 0.2s",
+                cursor: "pointer",
               }}
             >
               Ingresar al Sistema
