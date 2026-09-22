@@ -1,24 +1,10 @@
-import "./globals.css";
-import type { ReactNode } from "react";
+import './globals.css';
 
-export const metadata = {
-  title: "MVP Conciliación Bancaria Chile",
-  description: "Sistema de conciliación bancaria y de facturas SII",
-};
-
-function Canvas({ children }: { children: ReactNode }) {
-  return <>{children}</>;
-}
-
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className="h-full w-full bg-background foreground-font antialiased">
-      <body className="h-full w-full bg-background text-font antialiased">
-        <Canvas>{children}</Canvas>
+    <html lang="es">
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+        {children}
       </body>
     </html>
   );

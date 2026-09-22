@@ -39,43 +39,40 @@ export const Sidebar = () => {
 
   const handleNavChange = (key: DashboardNav) => {
     setActiveNav(key);
-    console.log(`Navegando a: ${navMap[key]}`);
   };
 
   return (
-    <aside
-      className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border p-4 flex flex-col space-y-2 overflow-y-auto"
+    <nav
+      className="flex flex-col gap-2 p-4 w-64 bg-white border-r"
     >
-      <div className="h-full">
-        <nav>
-          <div className="list-none p-0 m-0 flex flex-col space-y-1">
-            {navItems.map((item) => {
-              const isActive = activeNav === item.key;
-              const normalClasses = "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/20 hover:text-primary";
-              const activeClasses = "data-[state=active]:bg-primary/10 data-[state=active]:text-primary";
-              const combinedClasses = isActive
-                ? `${normalClasses} ${activeClasses}`
-                : normalClasses;
+      {navItems.map((item) => {
+        const isActive = activeNav === item.key;
+        const normalClasses = "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/20 hover:text-primary";
+        const activeClasses = "data-[state=active]:bg-primary/10 data-[state=active]:text-primary";
+        const combinedClasses = isActive
+          ? `${normalClasses} ${activeClasses}`
+          : normalClasses;
 
-              return (
-                <div key={item.key} className="flex items-center gap-2">
-                  <button
-                    data-nav={item.key}
-                    className={combinedClasses}
-                    onClick={() => handleNavChange(item.key)}
-                    aria-label={item.label}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-                    </svg>
-                    <span>{item.label}</span>
-                  </button>
-                </div>
-              );
-            })}
+        return (
+          <div key={item.key} className="flex items-center gap-2">
+            <button
+              className={combinedClasses}
+              onClick={() => handleNavChange(item.key)}
+              aria-label={item.label}
+            >
+              <svg
+                className="w-5 h-5 min-w-[20px]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+              </svg>
+              <span>{item.label}</span>
+            </button>
           </div>
-        </nav>
-      </div>
-    </aside>
+        );
+      })}
+    </nav>
   );
 };

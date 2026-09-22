@@ -21,11 +21,11 @@ export default function Home() {
     const userStr = localStorage.getItem("user");
 
     if (token && userStr) {
-      // Usuario ya autenticado, redirigir al dashboard
+      // Usuario ya autenticado, redirigir al dashboard automáticamente
       setShowLogin(false);
       router.push("/conciliacion");
     } else {
-      // No hay sesión, mostrar login
+      // No hay sesión, mostrar formulario de login
       setShowLogin(true);
     }
   }, [router]);

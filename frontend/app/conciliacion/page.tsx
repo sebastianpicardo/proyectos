@@ -9,37 +9,18 @@ import { HealthScore } from "./components/HealthScore";
 import { ResultsTable } from "./components/ResultsTable";
 import { toast } from "sonner";
 
-const AUTHORIZED_EMAILS = [
-  "seba@empresa.com",
-  "admin@test.com",
-  "usuario@dominio.com",
-];
-
 const ConciliacionDashboard = () => {
   const router = useRouter();
 
   useEffect(() => {
     // Verificar sesión al cargar el componente
     const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-
-    if (!token || !userStr) {
-      // Sin sesión → redirigir a raíz (mostrará login)
+    if (!token) {
+      // Sin sesión → redirigir de inmediato a raíz /
       router.push("/");
       return;
     }
-
-    try {
-      const user = JSON.parse(userStr);
-      // Verificar email en white list
-      if (!AUTHORIZED_EMAILS.includes(user.email)) {
-        // Usuario no autorizado → redirigir a raíz
-        router.push("/");
-      }
-    } catch (e) {
-      // Token corrupto → redirigir a raíz
-      router.push("/");
-    }
+    // Si hay token, mostrar el dashboard completo
   }, [router]);
 
   const [activeSection, setActiveSection] = useState<"dashboard" | "conciliacion">("dashboard");
@@ -57,20 +38,15 @@ const ConciliacionDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Dropzone onUploadSuccess={handleUploadSuccess} onError={handleError} />
-            <HealthScore />
-            <ResultsTable />
-          </div>
-          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          </div>
-        </main>
-      </div>
+    <div className="flex h-screen w-full overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto p-8 bg-slate-50">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Dropzone onUploadSuccess={handleUploadSuccess} onError={handleError} />
+          <HealthScore />
+          <ResultsTable />
+        </div>
+      </main>
     </div>
   );
 };
