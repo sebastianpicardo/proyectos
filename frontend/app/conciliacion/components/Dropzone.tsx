@@ -70,9 +70,9 @@ const parseCSV = (file: File): Promise<any> => {
       resolve({ headers, rows, separator });
     };
 
-reader.onerror = (event: ProgressEvent<FileReader>) => {
-        reject(new Error("Error al leer el archivo."));
-      };
+    reader.onerror = (event: ProgressEvent<FileReader>) => {
+      reject(new Error("Error al leer el archivo."));
+    };
 
     reader.readAsText(file, "UTF-8");
   });
@@ -285,7 +285,13 @@ export const Dropzone = ({
             handleFileDrop(e, "cartola");
           }}
         >
-          <svg className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors"
+            style={{ width: '20px', height: '20px' }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Cartola Bancaria</h3>
@@ -294,7 +300,13 @@ export const Dropzone = ({
         </div>
         {cartola && (
           <div className="mt-3 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-sm">
-            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4 inline mr-1"
+              style={{ width: '20px', height: '20px' }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
             </svg>
             <span>Archivo seleccionado: {cartola.name}</span>
@@ -316,7 +328,11 @@ export const Dropzone = ({
         )}
         {loading && (
           <div className="mt-3 flex items-center justify-center pt-2">
-            <svg className="w-5 h-5 mr-2 text-primary animate-spin" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5 mr-2 text-primary animate-spin"
+              style={{ width: '20px', height: '20px' }}
+              viewBox="0 0 24 24"
+            >
               <circle
                 className="opacity-25"
                 cx="12"
@@ -373,7 +389,13 @@ export const Dropzone = ({
             handleFileDrop(e, "facturas");
           }}
         >
-          <svg className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-8 h-8 mb-3 text-primary/60 group-hover:text-primary transition-colors"
+            style={{ width: '20px', height: '20px' }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 0v4h16v-4H4zm0 0v4h12v-2h4v-4h-4v-2h-12zm0 0v4h16v-4H4z"/>
           </svg>
           <h3 className="text-lg font-medium mb-1">Facturas / Ventas SII</h3>
@@ -382,7 +404,13 @@ export const Dropzone = ({
         </div>
         {facturas && (
           <div className="mt-3 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-sm">
-            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4 inline mr-1"
+              style={{ width: '20px', height: '20px' }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L12 4l-8 8" />
             </svg>
             <span>Archivo seleccionado: {facturas.name}</span>
@@ -390,7 +418,11 @@ export const Dropzone = ({
         )}
         {loading && (
           <div className="mt-3 flex items-center justify-center pt-2">
-            <svg className="w-5 h-5 mr-2 text-primary animate-spin" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5 mr-2 text-primary animate-spin"
+              style={{ width: '20px', height: '20px' }}
+              viewBox="0 0 24 24"
+            >
               <circle
                 className="opacity-25"
                 cx="12"

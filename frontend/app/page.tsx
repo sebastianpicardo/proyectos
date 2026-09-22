@@ -12,7 +12,7 @@ const AUTHORIZED_EMAILS = [
 ];
 
 export default function Home() {
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
   const [email, setEmail] = useState("");
   const router = useRouter();
 
@@ -45,17 +45,16 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Verificar si ya hay sesión activa
+    // Verificar si ya hay sesión activa al cargar
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
 
     if (token && userStr) {
-      const user = JSON.parse(userStr);
       // Usuario ya autenticado, redirigir al dashboard
       setShowLogin(false);
       router.push("/conciliacion");
     } else {
-      // No hay sesión, mostrar login
+      // No hay sesión, mostrar login (por defecto)
       setShowLogin(true);
     }
   }, [router]);
@@ -94,13 +93,13 @@ export default function Home() {
             </button>
           </form>
           <p className="text-center mt-6 text-muted/60 text-xs">
-            ¿No tienes una cuenta? {""}
+            ¿No tienes una cuenta?{" "}
           </p>
         </div>
       </div>
     );
   }
 
-  // Si ya está autenticado, renderizar null (redirigirá usoEffect después)
-  return null;
+  // Si ya está autenticado, renderizar el dashboard
+  return <ConciliacionDashboard />;
 }
