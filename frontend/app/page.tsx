@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import ConciliacionDashboard from "./conciliacion/page";
 
 const AUTHORIZED_EMAILS = [
   "seba@empresa.com",
@@ -15,6 +14,21 @@ export default function Home() {
   const [showLogin, setShowLogin] = useState(true);
   const [email, setEmail] = useState("");
   const router = useRouter();
+
+  // Verificar sesión al cargar
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+
+    if (token && userStr) {
+      // Usuario ya autenticado, redirigir al dashboard
+      setShowLogin(false);
+      router.push("/conciliacion");
+    } else {
+      // No hay sesión, mostrar login
+      setShowLogin(true);
+    }
+  }, [router]);
 
   const handleLogin = () => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -44,24 +58,9 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    // Verificar si ya hay sesión activa al cargar
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-
-    if (token && userStr) {
-      // Usuario ya autenticado, redirigir al dashboard
-      setShowLogin(false);
-      router.push("/conciliacion");
-    } else {
-      // No hay sesión, mostrar login (por defecto)
-      setShowLogin(true);
-    }
-  }, [router]);
-
-  if (showLogin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      {showLogin ? (
         <div className="bg-card border border-border p-8 rounded-2xl shadow-xl max-w-md w-full">
           <h2 className="text-2xl font-bold mb-6 text-center text-foreground">
             Inicio de Sesión
@@ -71,8 +70,9 @@ export default function Home() {
               e.preventDefault();
               handleLogin();
             }}
+            className="space-y-4"
           >
-            <div className="mb-4">
+            <div>
               <label className="block text-sm font-medium mb-2 text-muted/60">
                 Email institucional
               </label>
@@ -85,9 +85,10 @@ export default function Home() {
                 required
               />
             </div>
+
             <button
               type="submit"
-              className="w-full rounded bg-primary py-3 px-4 font-medium text-primary-foreground hover:bg-primary/10 transition-colors mt-4"
+              className="w-full rounded bg-primary py-3 px-4 font-medium text-primary-foreground hover:bg-primary/10 transition-colors"
             >
               Acceder al Sistema
             </button>
@@ -96,10 +97,9 @@ export default function Home() {
             ¿No tienes una cuenta?{" "}
           </p>
         </div>
-      </div>
-    );
-  }
-
-  // Si ya está autenticado, renderizar el dashboard
-  return <ConciliacionDashboard />;
+      ) : (
+        <></>
+      )}
+    </div>
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
 import { Dropzone } from "./components/Dropzone";
@@ -8,7 +9,39 @@ import { HealthScore } from "./components/HealthScore";
 import { ResultsTable } from "./components/ResultsTable";
 import { toast } from "sonner";
 
+const AUTHORIZED_EMAILS = [
+  "seba@empresa.com",
+  "admin@test.com",
+  "usuario@dominio.com",
+];
+
 const ConciliacionDashboard = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Verificar sesión al cargar el componente
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+
+    if (!token || !userStr) {
+      // Sin sesión → redirigir a raíz (mostrará login)
+      router.push("/");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+      // Verificar email en white list
+      if (!AUTHORIZED_EMAILS.includes(user.email)) {
+        // Usuario no autorizado → redirigir a raíz
+        router.push("/");
+      }
+    } catch (e) {
+      // Token corrupto → redirigir a raíz
+      router.push("/");
+    }
+  }, [router]);
+
   const [activeSection, setActiveSection] = useState<"dashboard" | "conciliacion">("dashboard");
 
   const handleUploadSuccess = (data: any) => {

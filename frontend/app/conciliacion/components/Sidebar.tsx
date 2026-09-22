@@ -44,11 +44,11 @@ export const Sidebar = () => {
 
   return (
     <aside
-      className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border p-4 space-y-2 overflow-y-auto"
+      className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border p-4 flex flex-col space-y-2 overflow-y-auto"
     >
       <div className="h-full">
         <nav>
-          <ul className="space-y-1 px-2">
+          <div className="list-none p-0 m-0 flex flex-col space-y-1">
             {navItems.map((item) => {
               const isActive = activeNav === item.key;
               const normalClasses = "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/20 hover:text-primary";
@@ -58,7 +58,7 @@ export const Sidebar = () => {
                 : normalClasses;
 
               return (
-                <li key={item.key}>
+                <div key={item.key} className="flex items-center gap-2">
                   <button
                     data-nav={item.key}
                     className={combinedClasses}
@@ -70,10 +70,10 @@ export const Sidebar = () => {
                     </svg>
                     <span>{item.label}</span>
                   </button>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         </nav>
       </div>
     </aside>
