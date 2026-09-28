@@ -12,7 +12,7 @@ import {
 interface MetricCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   iconBg: string;
   iconColor: string;
   trend?: {

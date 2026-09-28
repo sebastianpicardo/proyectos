@@ -64,21 +64,13 @@ export default function Home() {
         points: parsed.points || 0,
         consecutiveDays: parsed.consecutiveDays || 0,
       });
+    } else {
+      router.push("/login");
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = () => {
-    const newUser: UserData = {
-      name: "Administrador",
-      email: "admin@test.com",
-      level: 1,
-      points: 0,
-      consecutiveDays: 0,
-    };
-    localStorage.setItem("token", "mock-jwt-token");
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setIsAuthenticated(true);
-    setUser(newUser);
+    router.push("/login");
   };
 
   const handleLogout = () => {
