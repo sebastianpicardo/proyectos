@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, Zap, Shield } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
+declare global {
+  interface Window {
+    onHcaptchaLoad: () => void;
+    hcaptcha: {
+      render: (container: string, options: { sitekey: string; theme: string; size: string }) => number;
+      getResponse: (widgetId: number) => string;
+      reset: (widgetId: number) => void;
+    };
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, register, loginWithGoogle, loading } = useAuth();
@@ -29,18 +40,21 @@ export default function LoginPage() {
   const HCAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
   useEffect(() => {
-    // Load hCaptcha script
-    const script = document.createElement("script");
-    script.src = "https://js.hcaptcha.com/1/api.js";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    // Define global callback BEFORE loading script
+    window.onHcaptchaLoad = () => {
       setHcaptchaLoaded(true);
     };
+
+    // Load hCaptcha script with explicit render and onload callback
+    const script = document.createElement("script");
+    script.src = `https://js.hcaptcha.com/1/api.js?render=explicit&onload=onHcaptchaLoad`;
+    script.async = true;
+    script.defer = true;
     document.head.appendChild(script);
 
     return () => {
       document.head.removeChild(script);
+      window.onHcaptchaLoad = () => {};
     };
   }, []);
 
