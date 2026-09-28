@@ -110,20 +110,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, captchaToken }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        saveUser(data.user);
-        // Check profile after login
-        const hasProfile = await checkProfile();
-        if (!hasProfile && !user?.isSuperAdmin) {
-          router.push("/planes");
-        } else {
-          router.push("/conciliacion");
-        }
-        return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText || "No se pudo completar la solicitud"}`);
       }
-      const error = await response.json();
-      throw new Error(error.message || "Credenciales inválidas");
+      const data = await response.json();
+      saveUser(data.user);
+      // Check profile after login
+      const hasProfile = await checkProfile();
+      if (!hasProfile && !user?.isSuperAdmin) {
+        router.push("/planes");
+      } else {
+        router.push("/conciliacion");
+      }
+      return;
     } catch (err) {
       throw err;
     }
@@ -138,33 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ name, email, password, captchaToken }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        saveUser(data.user);
-        router.push("/planes");
-        return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText || "No se pudo completar la solicitud"}`);
       }
-      const error = await response.json();
-      throw new Error(error.message || "Error al registrar");
+      const data = await response.json();
+      saveUser(data.user);
+      router.push("/planes");
+      return;
     } catch (err) {
-      // Mock register for demo
-      if (name && email && password.length >= 6) {
-        const newUser: User = {
-          id: `user_${Date.now()}`,
-          name,
-          email,
-          level: 1,
-          points: 0,
-          consecutiveDays: 0,
-          provider: "email",
-          isSuperAdmin: email === SUPER_ADMIN_EMAIL,
-          hasProfile: false,
-        };
-        saveUser(newUser);
-        router.push("/planes");
-      } else {
-        throw new Error("Error al registrar");
-      }
+      throw err;
     }
   };
 
@@ -195,34 +178,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 body: JSON.stringify({ credential: response.credential, captchaToken }),
               });
 
-              if (res.ok) {
-                const data = await res.json();
-                saveUser(data.user);
-                const hasProfile = await checkProfile();
-                if (!hasProfile && !data.user.isSuperAdmin) {
-                  router.push("/planes");
-                } else {
-                  router.push("/conciliacion");
-                }
+              if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Error ${res.status}: ${errorText || "Error en autenticación Google"}`);
+              }
+              const data = await res.json();
+              saveUser(data.user);
+              const hasProfile = await checkProfile();
+              if (!hasProfile && !data.user.isSuperAdmin) {
+                router.push("/planes");
               } else {
-                throw new Error("Error en autenticación Google");
+                router.push("/conciliacion");
               }
             } catch (err) {
-              // Mock Google login for demo (only super admin)
-              const mockUser: User = {
-                id: `google_${Date.now()}`,
-                name: "Sebastián Picardo",
-                email: SUPER_ADMIN_EMAIL,
-                avatar: "https://lh3.googleusercontent.com/placeholder",
-                level: 1,
-                points: 0,
-                consecutiveDays: 0,
-                provider: "google",
-                isSuperAdmin: true,
-                hasProfile: false,
-              };
-              saveUser(mockUser);
-              router.push("/planes");
+              console.error("Google login error:", err);
+              throw err;
             }
           },
         });
