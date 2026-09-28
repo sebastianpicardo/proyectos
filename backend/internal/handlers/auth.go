@@ -294,14 +294,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoogleAuthHandler(w http.ResponseWriter, r *http.Request) {
-	if hcaptchaSecret != "" {
-		token := r.URL.Query().Get("hcaptcha_token")
-		if token == "" || !verifyHCaptcha(token, r.RemoteAddr) {
-			http.Error(w, "CAPTCHA verification failed", http.StatusBadRequest)
-			return
-		}
-	}
-
 	state := generateState()
 	session, _ := store.Get(r, "session")
 	session.Values["oauth_state"] = state
@@ -312,45 +304,57 @@ func GoogleAuthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "session")
-	savedState, _ := session.Values["oauth_state"].(string)
-	queryState := r.URL.Query().Get("state")
+	// Verify hCaptcha from JSON body (sent by frontend with credential)
+	if hcaptchaSecret != "" {
+		var req struct {
+			Credential    string `json:"credential"`
+			HCaptchaToken string `json:"hcaptcha_token"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		if req.HCaptchaToken == "" || !verifyHCaptcha(req.HCaptchaToken, r.RemoteAddr) {
+			http.Error(w, "CAPTCHA verification failed", http.StatusBadRequest)
+			return
+		}
+		// Re-use the credential from parsed body
+		credential := req.Credential
 
-	if savedState != queryState {
-		http.Error(w, "Invalid OAuth state", http.StatusBadRequest)
-		return
-	}
+		session, _ := store.Get(r, "session")
+		savedState, _ := session.Values["oauth_state"].(string)
+		queryState := r.URL.Query().Get("state")
 
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		http.Error(w, "Authorization code not found", http.StatusBadRequest)
-		return
-	}
+		if savedState != "" && savedState != r.URL.Query().Get("state") {
+			http.Error(w, "Invalid OAuth state", http.StatusBadRequest)
+			return
+		}
 
-	ctx := context.Background()
-	token, err := googleOAuthConfig.Exchange(ctx, code)
-	if err != nil {
-		http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+		// Use credential from parsed body instead of URL query
+		if credential == "" {
+			http.Error(w, "Missing credential", http.StatusBadRequest)
+			return
+		}
 
-	client := googleOAuthConfig.Client(ctx, token)
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
-	if err != nil {
-		http.Error(w, "Failed to get user info", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
+		ctx := context.Background()
+		// Use credential as ID token to get user info
+		client := googleOAuthConfig.Client(context.Background(), &oauth2.Token{IDToken: credential})
+		resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+		if err != nil {
+			http.Error(w, "Failed to get user info", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
-	var googleUser struct {
-		ID            string `json:"id"`
-		Email         string `json:"email"`
-		Name          string `json:"name"`
-		Picture       string `json:"picture"`
-		VerifiedEmail bool   `json:"verified_email"`
-	}
-	json.Unmarshal(body, &googleUser)
+		body, _ := io.ReadAll(resp.Body)
+		var googleUser struct {
+			ID            string `json:"id"`
+			Email         string `json:"email"`
+			Name          string `json:"name"`
+			Picture       string `json:"picture"`
+			VerifiedEmail bool   `json:"verified_email"`
+		}
+		json.Unmarshal(body, &googleUser)
 
 	if !googleUser.VerifiedEmail {
 		http.Error(w, "Email not verified", http.StatusBadRequest)
