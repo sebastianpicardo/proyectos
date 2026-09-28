@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { MetricCard } from "@/components/MetricCard";
 import { DragDropZone } from "@/components/DragDropZone";
 import { XPGamification } from "@/components/XPGamification";
+import { useAuth } from "@/components/AuthContext";
 import { 
   DollarSign, 
   CheckCircle, 
@@ -17,7 +18,10 @@ import {
   Zap, 
   TrendingUp, 
   Users,
-  Star
+  Star,
+  FileText as FileTextIcon,
+  CheckCircle as CheckCircleIcon,
+  AlertTriangle as AlertTriangleIcon,
 } from "lucide-react";
 
 interface UserData {
@@ -26,12 +30,14 @@ interface UserData {
   level: number;
   points: number;
   consecutiveDays: number;
+  isSuperAdmin?: boolean;
+  hasProfile?: boolean;
 }
 
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading, logout, checkProfile } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showXPModal, setShowXPModal] = useState(false);
   const [cartolaFile, setCartolaFile] = useState<File | null>(null);
@@ -43,48 +49,17 @@ export default function Home() {
   const [cartolaError, setCartolaError] = useState<string | null>(null);
   const [facturasError, setFacturasError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; xp: number } | null>(null);
-  const [user, setUser] = useState<UserData>({
-    name: "Administrador",
-    email: "admin@test.com",
-    level: 1,
-    points: 0,
-    consecutiveDays: 0,
-  });
 
+  // Check profile on mount and redirect if needed
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-    if (token && userData) {
-      const parsed = JSON.parse(userData);
-      setIsAuthenticated(true);
-      setUser({
-        name: parsed.name || "Administrador",
-        email: parsed.email || "admin@test.com",
-        level: parsed.level || 1,
-        points: parsed.points || 0,
-        consecutiveDays: parsed.consecutiveDays || 0,
-      });
-    } else {
-      router.push("/login");
+    if (!loading && user && !user.isSuperAdmin && !user.hasProfile) {
+      router.push("/planes");
     }
-  }, [router]);
-
-  const handleLogin = () => {
-    router.push("/login");
-  };
+  }, [user, loading, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setIsAuthenticated(false);
-    setUser({
-      name: "Administrador",
-      email: "admin@test.com",
-      level: 1,
-      points: 0,
-      consecutiveDays: 0,
-    });
-    router.push("/");
+    logout();
+    router.push("/login");
   };
 
   const handleNavigate = (path: string) => {
@@ -107,19 +82,19 @@ export default function Home() {
 
     // Calculate XP gain
     const xpGain = 50;
-    const newPoints = user.points + xpGain;
+    const newPoints = (user?.points || 0) + 50;
     const newLevel = calculateLevel(newPoints);
     
     // Update streak
     const today = new Date().toISOString().split("T")[0];
     const lastDate = localStorage.getItem("lastActivityDate");
-    let newConsecutive = user.consecutiveDays;
+    let newConsecutive = user?.consecutiveDays || 0;
     if (lastDate !== today) {
-      newConsecutive = user.consecutiveDays + 1;
+      newConsecutive = (user?.consecutiveDays || 0) + 1;
       localStorage.setItem("lastActivityDate", today);
     }
 
-    const updatedUser: UserData = {
+    const updatedUser = {
       ...user,
       points: newPoints,
       level: newLevel,
@@ -127,11 +102,10 @@ export default function Home() {
     };
 
     localStorage.setItem("user", JSON.stringify(updatedUser));
-    setUser(updatedUser);
 
     // Show toast
-    setToast({ message: type === "cartola" ? "Cartola procesada" : "Facturas procesadas", xp: xpGain });
-    localStorage.setItem("pendingXPToast", JSON.stringify({ message: type === "cartola" ? "Cartola procesada" : "Facturas procesadas", xp: xpGain }));
+    setToast({ message: type === "cartola" ? "Cartola procesada" : "Facturas procesadas", xp: 50 });
+    localStorage.setItem("pendingXPToast", JSON.stringify({ message: type === "cartola" ? "Cartola procesada" : "Facturas procesadas", xp: 50 }));
 
     if (type === "cartola") {
       setCartolaProcessing(false);
@@ -166,7 +140,18 @@ export default function Home() {
     }
   };
 
-  if (!isAuthenticated) {
+  const formatCLP = (value: number) =>
+    new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -177,12 +162,9 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-white mb-2">Conciliador Pro</h1>
             <p className="text-slate-300 mb-8">Sistema profesional de conciliación bancaria con gamificación integrada</p>
             
-            <button
-              onClick={handleLogin}
-              className="w-full py-3 px-6 bg-white text-slate-900 rounded-xl font-semibold text-lg hover:bg-slate-100 transition-colors shadow-lg shadow-white/10"
-            >
+            <a href="/login" className="w-full py-3 px-6 bg-white text-slate-900 rounded-xl font-semibold text-lg hover:bg-slate-100 transition-colors shadow-lg shadow-white/10 block">
               Ingresar al Sistema
-            </button>
+            </a>
             
             <div className="mt-6 grid grid-cols-3 gap-4 text-center">
               <div className="bg-white/5 rounded-xl p-4">
@@ -232,7 +214,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
             <MetricCard
               title="Total Facturado"
-              value="$125,450"
+              value={formatCLP(125450000)}
               icon={<DollarSign className="w-6 h-6" />}
               iconBg="bg-green-100"
               iconColor="text-green-600"
@@ -244,16 +226,24 @@ export default function Home() {
               icon={<CheckCircle className="w-6 h-6" />}
               iconBg="bg-blue-100"
               iconColor="text-blue-600"
-              progress={{ current: 89200, total: 125450, label: "Facturas conciliadas" }}
+              progress={{ current: 89200000, total: 125450000, label: "Facturas conciliadas" }}
               trend={{ value: "+3.2%", label: "vs mes anterior", positive: true }}
             />
             <MetricCard
               title="Pendientes / Morosidad"
-              value="$36,250"
+              value={formatCLP(36250000)}
               icon={<AlertTriangle className="w-6 h-6" />}
               iconBg="bg-orange-100"
               iconColor="text-orange-600"
               trend={{ value: "-8.1%", label: "vs mes anterior", positive: true }}
+            />
+            <MetricCard
+              title="Salud Financiera"
+              value="71%"
+              icon={<TrendingUp className="w-6 h-6" />}
+              iconBg="bg-purple-100"
+              iconColor="text-purple-600"
+              trend={{ value: "+5 pts", label: "vs mes anterior", positive: true }}
             />
           </div>
 
@@ -301,6 +291,7 @@ export default function Home() {
               onClick={() => handleNavigate("/historial")}
               className="flex-1 py-3 px-6 bg-white text-slate-700 rounded-xl font-semibold border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
             >
+              <FileText className="w-5 h-5" />
               Ver Historial de Conciliaciones
             </button>
           </div>
@@ -321,7 +312,7 @@ export default function Home() {
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color}`}>
-                      <item.icon className="w-5 h-5" style={{ color: item.color.replace("bg-", "").replace("text-", "") }} />
+                      <item.icon className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="text-sm text-slate-500">{item.label}</p>
@@ -398,3 +389,23 @@ export default function Home() {
     </div>
   );
 }
+
+const handleLogout = () => {
+  // This will be replaced by the logout from useAuth
+};
+
+const handleNavigate = (path: string) => {
+  // This will be replaced by the router
+};
+
+const calculateLevel = (points: number): number => {
+  if (points >= 2000) return 6;
+  if (points >= 1000) return 5;
+  if (points >= 500) return 4;
+  if (points >= 250) return 3;
+  if (points >= 100) return 2;
+  return 1;
+};
+
+const formatCLP = (value: number) =>
+  new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);

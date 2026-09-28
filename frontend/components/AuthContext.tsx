@@ -15,6 +15,12 @@ declare global {
         };
       };
     };
+    hcaptcha: {
+      render: (container: string, options: { sitekey: string; theme: string; size: string }) => number;
+      getResponse: (widgetId: number) => string;
+      reset: (widgetId: number) => void;
+    };
+    hcaptchaLoaded: boolean;
   }
 }
 
@@ -27,22 +33,26 @@ interface User {
   points: number;
   consecutiveDays: number;
   provider: "email" | "google";
+  isSuperAdmin?: boolean;
+  hasProfile?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  login: (email: string, password: string, hcaptchaToken?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, hcaptchaToken?: string) => Promise<void>;
+  loginWithGoogle: (hcaptchaToken?: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  checkProfile: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const GOOGLE_CLIENT_ID = "154471456297-e6smfhb4e2u5imvmt8rhqqa7d0hcubo2.apps.googleusercontent.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://marketingos-fy99.onrender.com";
+const SUPER_ADMIN_EMAIL = "sebastian.picardo@gmail.com";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("user");
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        // Ensure isSuperAdmin is set correctly based on email
+        parsed.isSuperAdmin = parsed.email === SUPER_ADMIN_EMAIL;
+        setUser(parsed);
       } catch {
         localStorage.removeItem("user");
       }
@@ -62,33 +75,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const saveUser = (newUser: User) => {
+    // Ensure isSuperAdmin is always based on email
+    newUser.isSuperAdmin = newUser.email === SUPER_ADMIN_EMAIL;
     setUser(newUser);
     localStorage.setItem("user", JSON.stringify(newUser));
     localStorage.setItem("token", "mock-jwt-token");
   };
 
-  const login = async (email: string, password: string) => {
+  const checkProfile = async (): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const response = await fetch(`${API_URL}/api/profile`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hasProfile) {
+          saveUser({ ...user, hasProfile: true });
+          return true;
+        }
+      }
+    } catch {
+      // Fallback to localStorage
+    }
+    return false;
+  };
+
+  const login = async (email: string, password: string, hcaptchaToken?: string) => {
     setLoading(true);
     try {
-      // Try backend API first
+      // Check if email is allowed (only super admin email allowed)
+      if (email !== SUPER_ADMIN_EMAIL) {
+        throw new Error("Acceso restringido. Solo el administrador autorizado puede acceder.");
+      }
+
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, hcaptcha_token: hcaptchaToken }),
       });
 
       if (response.ok) {
         const data = await response.json();
         saveUser(data.user);
-        router.push("/conciliacion");
+        // Check profile after login
+        const hasProfile = await checkProfile();
+        if (!hasProfile && !user?.isSuperAdmin) {
+          router.push("/planes");
+        } else {
+          router.push("/conciliacion");
+        }
         return;
       }
-    } catch {
+    } catch (err) {
       // Fallback to local mock
     }
 
-    // Mock login for demo
-    if (email && password.length >= 6) {
+    // Mock login for demo (only super admin email)
+    if (email === SUPER_ADMIN_EMAIL && password.length >= 6) {
       const newUser: User = {
         id: `user_${Date.now()}`,
         name: email.split("@")[0],
@@ -97,34 +141,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         points: 0,
         consecutiveDays: 0,
         provider: "email",
+        isSuperAdmin: true,
+        hasProfile: false,
       };
       saveUser(newUser);
-      router.push("/conciliacion");
+      router.push("/planes");
     } else {
-      throw new Error("Credenciales inválidas");
+      throw new Error("Acceso restringido. Solo el administrador autorizado puede acceder.");
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, hcaptchaToken?: string) => {
     setLoading(true);
     try {
+      // Only allow super admin email
+      if (email !== SUPER_ADMIN_EMAIL) {
+        throw new Error("Registro restringido. Solo el administrador autorizado puede registrarse.");
+      }
+
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, hcaptcha_token: hcaptchaToken }),
       });
 
       if (response.ok) {
         const data = await response.json();
         saveUser(data.user);
-        router.push("/conciliacion");
+        router.push("/planes");
         return;
       }
       const error = await response.json();
       throw new Error(error.message || "Error al registrar");
     } catch (err) {
-      // Mock register for demo
-      if (name && email && password.length >= 6) {
+      // Mock register for demo (only super admin)
+      if (name && email === SUPER_ADMIN_EMAIL && password.length >= 6) {
         const newUser: User = {
           id: `user_${Date.now()}`,
           name,
@@ -133,16 +184,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           points: 0,
           consecutiveDays: 0,
           provider: "email",
+          isSuperAdmin: true,
+          hasProfile: false,
         };
         saveUser(newUser);
-        router.push("/conciliacion");
+        router.push("/planes");
       } else {
-        throw new Error("Datos inválidos");
+        throw new Error("Registro restringido. Solo el administrador autorizado puede registrarse.");
       }
     }
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (hcaptchaToken?: string) => {
     setLoading(true);
     try {
       // Load Google Identity Services
@@ -158,47 +211,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      // Initialize Google Identity Services
       if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: async (response: any) => {
             try {
-              // Send credential to backend
               const res = await fetch(`${API_URL}/api/auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ credential: response.credential }),
+                body: JSON.stringify({ credential: response.credential, hcaptcha_token: hcaptchaToken }),
               });
 
               if (res.ok) {
                 const data = await res.json();
                 saveUser(data.user);
-                router.push("/conciliacion");
+                const hasProfile = await checkProfile();
+                if (!hasProfile && !data.user.isSuperAdmin) {
+                  router.push("/planes");
+                } else {
+                  router.push("/conciliacion");
+                }
               } else {
                 throw new Error("Error en autenticación Google");
               }
             } catch (err) {
-              // Mock Google login for demo
+              // Mock Google login for demo (only super admin)
               const mockUser: User = {
                 id: `google_${Date.now()}`,
-                name: "Usuario Google",
-                email: "usuario@gmail.com",
+                name: "Sebastián Picardo",
+                email: SUPER_ADMIN_EMAIL,
                 avatar: "https://lh3.googleusercontent.com/placeholder",
                 level: 1,
                 points: 0,
                 consecutiveDays: 0,
                 provider: "google",
+                isSuperAdmin: true,
+                hasProfile: false,
               };
               saveUser(mockUser);
-              router.push("/conciliacion");
+              router.push("/planes");
             }
           },
         });
 
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback to popup if prompt doesn't work
             window.google.accounts.id.renderButton(
               document.getElementById("google-btn")!,
               { theme: "outline", size: "large", width: "100%" }
@@ -224,12 +281,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = (updates: Partial<User>) => {
     if (user) {
       const updated = { ...user, ...updates };
+      // Ensure isSuperAdmin is always based on email
+      updated.isSuperAdmin = updated.email === SUPER_ADMIN_EMAIL;
       saveUser(updated);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser, checkProfile }}>
       {children}
     </AuthContext.Provider>
   );

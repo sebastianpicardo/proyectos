@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, Zap } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, Zap, Shield } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
 export default function LoginPage() {
@@ -15,12 +15,46 @@ export default function LoginPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    hcaptchaToken: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const [hcaptchaLoaded, setHcaptchaLoaded] = useState(false);
+  const [hcaptchaWidgetId, setHcaptchaWidgetId] = useState<number | null>(null);
+
+  // hCaptcha site key (use test key for development)
+  const HCAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
+
+  useEffect(() => {
+    // Load hCaptcha script
+    const script = document.createElement("script");
+    script.src = "https://js.hcaptcha.com/1/api.js";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      setHcaptchaLoaded(true);
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Render hCaptcha widget when loaded
+    if (hcaptchaLoaded && window.hcaptcha && !hcaptchaWidgetId) {
+      const widgetId = window.hcaptcha.render("hcaptcha-widget", {
+        sitekey: HCAPTCHA_SITE_KEY,
+        theme: "dark",
+        size: "normal",
+      });
+      setHcaptchaWidgetId(widgetId);
+    }
+  }, [hcaptchaLoaded, hcaptchaWidgetId]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -45,6 +79,11 @@ export default function LoginPage() {
       newErrors.confirmPassword = "Las contraseñas no coinciden";
     }
     
+    // Check hCaptcha
+    if (!formData.hcaptchaToken) {
+      newErrors.hcaptcha = "Por favor completa el CAPTCHA";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -53,17 +92,27 @@ export default function LoginPage() {
     e.preventDefault();
     setGeneralError("");
     
+    // Get hCaptcha token
+    if (window.hcaptcha && hcaptchaWidgetId !== null) {
+      const token = window.hcaptcha.getResponse(hcaptchaWidgetId);
+      setFormData(prev => ({ ...prev, hcaptchaToken: token }));
+    }
+    
     if (!validateForm()) return;
     
     setSubmitLoading(true);
     try {
       if (isRegister) {
-        await register(formData.name, formData.email, formData.password);
+        await register(formData.name, formData.email, formData.password, formData.hcaptchaToken);
       } else {
-        await login(formData.email, formData.password);
+        await login(formData.email, formData.password, formData.hcaptchaToken);
       }
     } catch (err: any) {
       setGeneralError(err.message || "Error en la autenticación");
+      // Reset hCaptcha on error
+      if (window.hcaptcha && hcaptchaWidgetId !== null) {
+        window.hcaptcha.reset(hcaptchaWidgetId);
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -73,7 +122,18 @@ export default function LoginPage() {
     setGeneralError("");
     setSubmitLoading(true);
     try {
-      await loginWithGoogle();
+      // Get hCaptcha token for Google login
+      if (window.hcaptcha && hcaptchaWidgetId !== null) {
+        const token = window.hcaptcha.getResponse(hcaptchaWidgetId);
+        if (!token) {
+          setGeneralError("Por favor completa el CAPTCHA");
+          setSubmitLoading(false);
+          return;
+        }
+        await loginWithGoogle(token);
+      } else {
+        await loginWithGoogle("");
+      }
     } catch (err: any) {
       setGeneralError(err.message || "Error con Google");
     } finally {
@@ -240,6 +300,14 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* hCaptcha Widget */}
+            <div className="pt-2">
+              <div id="hcaptcha-widget" className="flex justify-center" />
+              {errors.hcaptcha && (
+                <p className="text-red-400 text-xs mt-1 text-center">{errors.hcaptcha}</p>
+              )}
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -305,6 +373,12 @@ export default function LoginPage() {
             <p className="text-2xl font-bold text-white">24/7</p>
             <p className="text-xs text-slate-400">Disponible</p>
           </div>
+        </div>
+        
+        {/* Security Badge */}
+        <div className="mt-6 text-center">
+          <Shield className="w-5 h-5 text-slate-500 mx-auto mb-2" />
+          <p className="text-xs text-slate-500">Protegido por hCaptcha Enterprise</p>
         </div>
       </div>
     </div>
