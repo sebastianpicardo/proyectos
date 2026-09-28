@@ -50,7 +50,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const GOOGLE_CLIENT_ID = "154471456297-e6smfhb4e2u5imvmt8rhqqa7d0hcubo2.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "629871162355-6t58ueo0l0825hlikqi6tub2p0fa02em.apps.googleusercontent.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://marketingos-fy99.onrender.com";
 const SUPER_ADMIN_EMAIL = "sebastian.picardo@gmail.com";
 
