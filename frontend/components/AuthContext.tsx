@@ -40,9 +40,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string, hcaptchaToken?: string) => Promise<void>;
-  register: (name: string, email: string, password: string, hcaptchaToken?: string) => Promise<void>;
-  loginWithGoogle: (hcaptchaToken?: string) => Promise<void>;
+  login: (email: string, password: string, captchaToken?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, captchaToken?: string) => Promise<void>;
+  loginWithGoogle: (captchaToken?: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   checkProfile: () => Promise<boolean>;
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  const login = async (email: string, password: string, hcaptchaToken?: string) => {
+  const login = async (email: string, password: string, captchaToken?: string) => {
     setLoading(true);
     try {
       // Check if email is allowed (only super admin email allowed)
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, hcaptcha_token: hcaptchaToken }),
+        body: JSON.stringify({ email, password, captchaToken }),
       });
 
       if (response.ok) {
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, hcaptchaToken?: string) => {
+  const register = async (name: string, email: string, password: string, captchaToken?: string) => {
     setLoading(true);
     try {
       // Only allow super admin email
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, hcaptcha_token: hcaptchaToken }),
+        body: JSON.stringify({ name, email, password, captchaToken }),
       });
 
       if (response.ok) {
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async (hcaptchaToken?: string) => {
+  const loginWithGoogle = async (captchaToken?: string) => {
     setLoading(true);
     try {
       // Load Google Identity Services
@@ -219,7 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const res = await fetch(`${API_URL}/api/auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ credential: response.credential, hcaptcha_token: hcaptchaToken }),
+                body: JSON.stringify({ credential: response.credential, captchaToken }),
               });
 
               if (res.ok) {

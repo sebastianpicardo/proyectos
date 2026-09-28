@@ -26,7 +26,7 @@ export default function LoginPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    hcaptchaToken: "",
+    captchaToken: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -59,13 +59,21 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    // Render hCaptcha widget when loaded
+    // Render hCaptcha widget when loaded with onVerify callback
     if (hcaptchaLoaded && window.hcaptcha && !hcaptchaWidgetId) {
       const widgetId = window.hcaptcha.render("hcaptcha-widget", {
         sitekey: HCAPTCHA_SITE_KEY,
         theme: "dark",
         size: "normal",
-      });
+        callback: (token: string) => {
+          // Store token immediately when user solves captcha
+          setFormData(prev => ({ ...prev, captchaToken: token }));
+        },
+        "expired-callback": () => {
+          // Clear token when captcha expires
+          setFormData(prev => ({ ...prev, captchaToken: "" }));
+        },
+      } as any);
       setHcaptchaWidgetId(widgetId);
     }
   }, [hcaptchaLoaded, hcaptchaWidgetId]);
@@ -94,7 +102,7 @@ export default function LoginPage() {
     }
     
     // Check hCaptcha
-    if (!formData.hcaptchaToken) {
+    if (!formData.captchaToken) {
       newErrors.hcaptcha = "Por favor completa el CAPTCHA";
     }
     
@@ -106,20 +114,17 @@ export default function LoginPage() {
     e.preventDefault();
     setGeneralError("");
     
-    // Get hCaptcha token
-    if (window.hcaptcha && hcaptchaWidgetId !== null) {
-      const token = window.hcaptcha.getResponse(hcaptchaWidgetId);
-      setFormData(prev => ({ ...prev, hcaptchaToken: token }));
-    }
+    // Token is already captured via onVerify callback, no need to call getResponse
+    // Just ensure we have the token from state
     
     if (!validateForm()) return;
     
     setSubmitLoading(true);
     try {
       if (isRegister) {
-        await register(formData.name, formData.email, formData.password, formData.hcaptchaToken);
+        await register(formData.name, formData.email, formData.password, formData.captchaToken);
       } else {
-        await login(formData.email, formData.password, formData.hcaptchaToken);
+        await login(formData.email, formData.password, formData.captchaToken);
       }
     } catch (err: any) {
       setGeneralError(err.message || "Error en la autenticación");

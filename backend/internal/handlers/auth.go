@@ -119,17 +119,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Email         string `json:"email"`
-		Password      string `json:"password"`
-		HCaptchaToken string `json:"hcaptcha_token"`
+		Email       string `json:"email"`
+		Password    string `json:"password"`
+		CaptchaToken string `json:"captchaToken"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if hcaptchaSecret != "" && req.HCaptchaToken != "" {
-		if !verifyHCaptcha(req.HCaptchaToken, r.RemoteAddr) {
+	if hcaptchaSecret != "" && req.CaptchaToken != "" {
+		if !verifyHCaptcha(req.CaptchaToken, r.RemoteAddr) {
 			http.Error(w, "CAPTCHA verification failed", http.StatusBadRequest)
 			return
 		}
@@ -205,18 +205,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name          string `json:"name"`
-		Email         string `json:"email"`
-		Password      string `json:"password"`
-		HCaptchaToken string `json:"hcaptcha_token"`
+		Name         string `json:"name"`
+		Email        string `json:"email"`
+		Password     string `json:"password"`
+		CaptchaToken string `json:"captchaToken"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if hcaptchaSecret != "" && req.HCaptchaToken != "" {
-		if !verifyHCaptcha(req.HCaptchaToken, r.RemoteAddr) {
+	if hcaptchaSecret != "" && req.CaptchaToken != "" {
+		if !verifyHCaptcha(req.CaptchaToken, r.RemoteAddr) {
 			http.Error(w, "CAPTCHA verification failed", http.StatusBadRequest)
 			return
 		}
@@ -308,13 +308,13 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	if hcaptchaSecret != "" {
 		var req struct {
 			Credential    string `json:"credential"`
-			HCaptchaToken string `json:"hcaptcha_token"`
+			CaptchaToken string `json:"captchaToken"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
-		if req.HCaptchaToken == "" || !verifyHCaptcha(req.HCaptchaToken, r.RemoteAddr) {
+		if req.CaptchaToken == "" || !verifyHCaptcha(req.CaptchaToken, r.RemoteAddr) {
 			http.Error(w, "CAPTCHA verification failed", http.StatusBadRequest)
 			return
 		}
