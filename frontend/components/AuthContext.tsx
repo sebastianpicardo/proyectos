@@ -104,11 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, captchaToken?: string) => {
     setLoading(true);
     try {
-      // Check if email is allowed (only super admin email allowed)
-      if (email !== SUPER_ADMIN_EMAIL) {
-        throw new Error("Acceso restringido. Solo el administrador autorizado puede acceder.");
-      }
-
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -127,38 +122,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return;
       }
+      const error = await response.json();
+      throw new Error(error.message || "Credenciales inválidas");
     } catch (err) {
-      // Fallback to local mock
-    }
-
-    // Mock login for demo (only super admin email)
-    if (email === SUPER_ADMIN_EMAIL && password.length >= 6) {
-      const newUser: User = {
-        id: `user_${Date.now()}`,
-        name: email.split("@")[0],
-        email,
-        level: 1,
-        points: 0,
-        consecutiveDays: 0,
-        provider: "email",
-        isSuperAdmin: true,
-        hasProfile: false,
-      };
-      saveUser(newUser);
-      router.push("/planes");
-    } else {
-      throw new Error("Acceso restringido. Solo el administrador autorizado puede acceder.");
+      throw err;
     }
   };
 
   const register = async (name: string, email: string, password: string, captchaToken?: string) => {
     setLoading(true);
     try {
-      // Only allow super admin email
-      if (email !== SUPER_ADMIN_EMAIL) {
-        throw new Error("Registro restringido. Solo el administrador autorizado puede registrarse.");
-      }
-
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,8 +147,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const error = await response.json();
       throw new Error(error.message || "Error al registrar");
     } catch (err) {
-      // Mock register for demo (only super admin)
-      if (name && email === SUPER_ADMIN_EMAIL && password.length >= 6) {
+      // Mock register for demo
+      if (name && email && password.length >= 6) {
         const newUser: User = {
           id: `user_${Date.now()}`,
           name,
@@ -184,13 +157,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           points: 0,
           consecutiveDays: 0,
           provider: "email",
-          isSuperAdmin: true,
+          isSuperAdmin: email === SUPER_ADMIN_EMAIL,
           hasProfile: false,
         };
         saveUser(newUser);
         router.push("/planes");
       } else {
-        throw new Error("Registro restringido. Solo el administrador autorizado puede registrarse.");
+        throw new Error("Error al registrar");
       }
     }
   };
